@@ -10,6 +10,7 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAYNAK = os.path.join(KOK, "_kaynak")
 sys.path.insert(0, KAYNAK)
 from veri import FIRMA, HIZMETLER, PROFIL, ILCELER  # noqa: E402
+import eski  # noqa: E402
 
 BUGUN = date.today().isoformat()
 
@@ -77,7 +78,7 @@ def ust_bar():
 <a class="logo" href="/" aria-label="{FIRMA['ad']} ana sayfa">{LOGO}<span><b>Avrasya</b><small>Temizlik · İstanbul</small></span></a>
 <button class="menu-ac" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">{IKON['menu']}</button>
 <nav class="menu" id="menu" aria-label="Ana menü">
-<a href="/#hizmetler">Hizmetler</a><a href="/#ilceler">İlçeler</a><a href="#sss">Sık Sorulanlar</a><a href="#iletisim">İletişim</a>
+<a href="/#hizmetler">Hizmetler</a><a href="/#ilceler">İlçeler</a><a href="/blog/">Blog</a><a href="#sss">Sık Sorulanlar</a><a href="#iletisim">İletişim</a>
 <a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}{FIRMA['tel_goster']}</a>
 </nav></div></header>'''
 
@@ -93,12 +94,17 @@ def ilce_listesi(aktif=None):
     gr = {"Avrupa": [], "Anadolu": []}
     for d in ILCELER:
         cur = ' aria-current="page"' if d[0] == aktif else ""
-        gr[d[3]].append(f'<li><a href="/{d[0]}-temizlik/"{cur}>{d[1]}</a></li>')
+        gr[d[3]].append(f'<li><a href="/{d[0]}-temizlik-sirketi/"{cur}>{d[1]}</a></li>')
     return (f'<h3>Avrupa Yakası</h3><ul class="ilce-liste">{"".join(gr["Avrupa"])}</ul>'
             f'<h3>Anadolu Yakası</h3><ul class="ilce-liste">{"".join(gr["Anadolu"])}</ul>')
 
 def sss_html(sorular):
     return "\n".join(f'<details><summary>{escape(s)}</summary><p>{escape(c)}</p></details>' for s, c in sorular)
+
+def uzun_html(c):
+    if not c.get("uzun"):
+        return ""
+    return f'''<section class="bolum"><div class="kap"><article class="makale">{c["uzun"]}</article></div></section>'''
 
 def sablon(c):
     """c: path, title, desc, h1, giris, hero, yer, yerde, sira, hakkinda, sss, yol, ilce_aktif, rozetler, wa_metin, og"""
@@ -114,10 +120,14 @@ def sablon(c):
         "name": FIRMA["ad"], "url": FIRMA["alan"] + "/", "telephone": FIRMA["tel"], "email": FIRMA["eposta"],
         "image": og, "address": {"@type": "PostalAddress", "addressLocality": "İstanbul", "addressCountry": "TR"},
         "areaServed": c.get("area", {"@type": "City", "name": "İstanbul"}),
-    }, {
-        "@context": "https://schema.org", "@type": "FAQPage",
-        "mainEntity": [{"@type": "Question", "name": s, "acceptedAnswer": {"@type": "Answer", "text": a}} for s, a in c["sss"]],
     }]
+    if c["sss"]:
+        sema.append({"@context": "https://schema.org", "@type": "FAQPage",
+            "mainEntity": [{"@type": "Question", "name": s, "acceptedAnswer": {"@type": "Answer", "text": a}} for s, a in c["sss"]]})
+    if c.get("makale"):
+        sema.append({"@context": "https://schema.org", "@type": "BlogPosting", "headline": c["makale"]["baslik"],
+            "datePublished": c["makale"]["tarih"], "dateModified": c["makale"]["guncel"], "mainEntityOfPage": url,
+            "author": {"@type": "Organization", "name": FIRMA["ad"]}, "publisher": {"@id": FIRMA["alan"] + "/#isletme"}, "image": og})
     if c.get("yol"):
         items = [{"@type": "ListItem", "position": 1, "name": "Ana sayfa", "item": FIRMA["alan"] + "/"}]
         for i, (a, u) in enumerate(c["yol"], 2):
@@ -127,7 +137,7 @@ def sablon(c):
     hero_img = resim(c["hero"], c["hero_alt"], yukle="eager", gen=1400, yuk=1540).replace("<img ", '<img fetchpriority="high" ', 1)
     rozet = "".join(f"<li>{r}</li>" for r in c["rozetler"])
     gtm = FIRMA["gtm"]
-    return f'''<!doctype html>
+    html = f'''<!doctype html>
 <html lang="tr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>(function(w,d,s,l,i){{w[l]=w[l]||[];w[l].push({{'gtm.start':new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);}})(window,document,'script','dataLayer','{gtm}');</script>
@@ -169,6 +179,7 @@ def sablon(c):
 <div class="resim">{resim("ekip", f"{FIRMA['ad']} temizlik ekibi")}</div>
 <div id="hakkimizda">{c["hakkinda"]}</div>
 </div></section>
+{uzun_html(c)}
 
 <section class="bolum lila"><div class="kap">
 <div class="bolum-bas"><span class="etiket">Nasıl çalışıyoruz?</span><h2>Üç adımda <em>randevu</em></h2></div>
@@ -230,6 +241,11 @@ document.addEventListener('click',function(e){{var a=e.target.closest('[data-ola
 </script>
 </body></html>
 '''
+    if not c["sss"]:
+        html = re.sub(r'<section class="bolum pembe" id="sss">.*?</section>\n', '', html, flags=re.S)
+    if c.get("ozel_main"):
+        html = re.sub(r'<main>.*?(<section class="bolum ilceler")', lambda m: '<main>\n' + c["ozel_main"] + '\n' + m.group(1), html, flags=re.S)
+    return html
 
 # ---------- içerik ----------
 GENEL_SSS = [
@@ -255,7 +271,7 @@ def ilce_sayfasi(d, v):
     ] + GENEL_SSS
     ilk = HIZ[sira[0]][1]
     return dict(
-        path=f"/{slug}-temizlik/", v=v,
+        path=f"/{slug}-temizlik-sirketi/", v=v, uzun=ESKI_SAYFA.get(f"{slug}-temizlik-sirketi", ""),
         title=f"{ad} Temizlik Şirketi | Ev ve İşyeri Temizliği | Avrasya Temizlik",
         desc=f"{yerde} ev temizliği, işyeri temizliği ve inşaat sonrası temizlik. {', '.join(mah[:3])} ve tüm {ad} için hemen arayın: {FIRMA['tel_goster']}.",
         ust_etiket=f"{ad} · İstanbul",
@@ -304,7 +320,7 @@ def hizmet_sayfasi(h, v):
     sss = [(f"{baslik} hangi ilçelerde yapılıyor?", f"{baslik} hizmetini İstanbul'un Avrupa ve Anadolu yakasındaki tüm ilçelerde planlıyoruz.")] + GENEL_SSS
     hero = {"isyeri-temizligi": "hero-ofis", "villa-temizligi": "hero-villa", "insaat-sonrasi-temizlik": "hero-mutfak"}.get(slug, "hero-salon")
     return dict(
-        path=f"/{slug}/", v=v,
+        path=f"/{slug}/", v=v, uzun=ESKI_SAYFA.get(slug, ""),
         title=f"İstanbul {baslik} | Avrasya Temizlik",
         desc=f"İstanbul {kucuk(baslik)}: {acik} Bilgi ve randevu: {FIRMA['tel_goster']}.",
         ust_etiket=f"{baslik} · İstanbul", h1=f"İstanbul <em>{baslik}</em>",
@@ -316,6 +332,68 @@ def hizmet_sayfasi(h, v):
         wa_metin=f"Merhaba, {kucuk(baslik)} hakkında bilgi almak istiyorum.",
         cta_h=f"{baslik} için <em>bugün</em> arayın",
     )
+
+ESKI_SAYFA = eski.sayfa_metinleri()
+YAZILAR = eski.yazilar()
+
+def yaka_sayfasi(yaka, v):
+    slug = "avrupa-yakasi" if yaka == "Avrupa" else "anadolu-yakasi"
+    ilceler = [d for d in ILCELER if d[3] == yaka]
+    liste = "".join(f'<li><a href="/{d[0]}-temizlik-sirketi/">{d[1]}</a></li>' for d in ilceler)
+    hakkinda = f'''<span class="etiket">{yaka} Yakası</span>
+<h2>{yaka} Yakası'nda <em>{len(ilceler)} ilçe</em></h2>
+<p>İstanbul {yaka} Yakası'ndaki tüm ilçelerde ev, işyeri, villa ve inşaat sonrası temizlik hizmeti veriyoruz. İlçenizi seçerek size özel sayfaya geçebilirsiniz.</p>
+<ul class="ilce-liste">{liste}</ul>'''
+    sss = [(f"{yaka} Yakası'nda hangi ilçelere geliyorsunuz?", f"{', '.join(d[1] for d in ilceler)} ilçelerinin tamamında hizmet planlıyoruz.")] + GENEL_SSS
+    return dict(
+        path=f"/{slug}-temizlik-sirketi/", v=v, uzun=ESKI_SAYFA.get(f"{slug}-temizlik-sirketi", ""),
+        title=f"İstanbul {yaka} Yakası Temizlik Şirketi | Avrasya Temizlik",
+        desc=f"İstanbul {yaka} Yakası'nın {len(ilceler)} ilçesinde ev, işyeri, villa ve inşaat sonrası temizlik. Bilgi ve randevu: {FIRMA['tel_goster']}.",
+        ust_etiket=f"İstanbul · {yaka} Yakası", h1=f"{yaka} Yakası <em>Temizlik</em> Şirketi",
+        giris=f"İstanbul {yaka} Yakası'nın {len(ilceler)} ilçesinde evinizi ve işyerinizi özenle temizliyoruz. Bugün arayın, planı birlikte yapalım.",
+        hero="hero-salon" if yaka == "Anadolu" else "hero-pencere", hero_alt=f"{yaka} Yakası temizlik", yer=f"{yaka} Yakası",
+        yerde=f"{yaka} Yakası'nda", sira=[h[0] for h in HIZMETLER], rozetler=["Ev", "İşyeri", "İnşaat sonrası", "Villa"],
+        kart_b=f"{len(ilceler)} ilçede hizmet", kart_s=f"İstanbul {yaka} Yakası",
+        hakkinda=hakkinda, sss=sss, yol=[("İlçeler", "/#ilceler"), (f"{yaka} Yakası", None)], ilce_aktif=None,
+        wa_metin=f"Merhaba, {yaka} Yakası'nda temizlik hizmeti hakkında bilgi almak istiyorum.",
+        cta_h=f"{yaka} Yakası'nda <em>temizlik</em> için arayın",
+    )
+
+def makale_sayfasi(y, v):
+    main = f'''<section class="hero makale-bas"><div class="kap" style="display:block">
+<nav class="yol" aria-label="Sayfa yolu"><a href="/">Ana sayfa</a> › <a href="/blog/">Blog</a> › {escape(y["baslik"])}</nav>
+<span class="etiket">Blog · Temizlik rehberi</span><h1>{escape(y["baslik"])}</h1>
+<p class="giris">{escape(y["ozet"])}</p>
+<div class="dugmeler"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Hemen Ara</a>
+<a class="btn btn-wa" href="{wa_link('Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.')}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Yaz</a></div>
+</div></section>
+<section class="bolum" style="padding-top:20px"><div class="kap makale-izgara">
+<article class="makale">{y["govde"]}</article>
+<aside class="makale-yan"><div class="yan-kart">{resim("ekip", "Avrasya Temizlik ekibi")}<div class="ic"><h3>Avrasya Temizlik</h3><p>İstanbul'un 39 ilçesinde ev, işyeri, villa ve inşaat sonrası temizlik.</p>
+<a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}{FIRMA['tel_goster']}</a></div></div>
+<div class="yan-kart ic"><h3>Hizmetlerimiz</h3><ul class="liste">{"".join(f'<li><a href="/{h[0]}/">{h[1]}</a></li>' for h in HIZMETLER)}</ul></div></aside>
+</div></section>
+<section class="bolum pembe" id="hizmetler"><div class="kap"><div class="bolum-bas"><span class="etiket">Hizmetlerimiz</span><h2>İstanbul'da <em>tertemiz</em> yaşam alanları</h2></div>
+<div class="izgara hizmetler">{hizmet_kartlari([h[0] for h in HIZMETLER][:3], "İstanbul")}</div></div></section>'''
+    return dict(path=f"/{y['slug']}/", v=v, title=f"{y['baslik']} | Avrasya Temizlik", desc=y["desc"], sss=[],
+                hero="hero-salon", hero_alt="", ust_etiket="", h1="", giris="", yer="İstanbul", yerde="İstanbul'da",
+                sira=[h[0] for h in HIZMETLER], rozetler=[], kart_b="", kart_s="", hakkinda="", yol=[("Blog", "/blog/"), (y["baslik"], None)],
+                ilce_aktif=None, wa_metin="Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.",
+                cta_h="Temizlik için <em>bugün</em> arayın", ozel_main=main, makale=y)
+
+def blog_sayfasi(yazilar, v):
+    kartlar = "".join(f'<a class="hizmet yazi-kart" href="/{y["slug"]}/"><div class="ic"><span class="tarih">{y["tarih"]}</span><h3>{escape(y["baslik"])}</h3><p>{escape(y["ozet"])}</p><span class="ok">Devamını oku →</span></div></a>' for y in yazilar)
+    main = f'''<section class="hero makale-bas"><div class="kap" style="display:block">
+<nav class="yol" aria-label="Sayfa yolu"><a href="/">Ana sayfa</a> › Blog</nav>
+<span class="etiket">Blog</span><h1>Temizlik <em>rehberi</em></h1>
+<p class="giris">Ev, işyeri, inşaat sonrası ve villa temizliği hakkında {len(yazilar)} yazı.</p></div></section>
+<section class="bolum" style="padding-top:10px"><div class="kap"><div class="izgara hizmetler">{kartlar}</div></div></section>'''
+    return dict(path="/blog/", v=v, title="Blog – Temizlik Rehberi | Avrasya Temizlik",
+                desc="Ev temizliği, işyeri temizliği, inşaat sonrası ve villa temizliği hakkında rehber yazılar.", sss=[],
+                hero="hero-salon", hero_alt="", ust_etiket="", h1="", giris="", yer="İstanbul", yerde="İstanbul'da",
+                sira=[h[0] for h in HIZMETLER], rozetler=[], kart_b="", kart_s="", hakkinda="", yol=[("Blog", None)],
+                ilce_aktif=None, wa_metin="Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.",
+                cta_h="Temizlik için <em>bugün</em> arayın", ozel_main=main)
 
 def yaz(path, html):
     hedef = os.path.join(KOK, path.strip("/"), "index.html") if path != "/" else os.path.join(KOK, "index.html")
@@ -335,12 +413,17 @@ def main():
     os.makedirs(os.path.join(KOK, "assets"), exist_ok=True)
     shutil.copyfile(os.path.join(KAYNAK, "stil.css"), os.path.join(KOK, "assets", "stil.css"))
     v = str(int(os.path.getmtime(os.path.join(KAYNAK, "stil.css"))))[-6:]
-    sayfalar = [ana_sayfa(v)] + [hizmet_sayfasi(h, v) for h in HIZMETLER] + [ilce_sayfasi(d, v) for d in ILCELER]
+    sayfalar = ([ana_sayfa(v)] + [hizmet_sayfasi(h, v) for h in HIZMETLER] + [yaka_sayfasi(y, v) for y in ("Avrupa", "Anadolu")]
+                + [ilce_sayfasi(d, v) for d in ILCELER])
+    dolu = {c["path"] for c in sayfalar} | {"/blog/", "/about/", "/contact/", "/services/"}
+    yazilar = [y for y in YAZILAR if f"/{y['slug']}/" not in dolu]
+    sayfalar += [blog_sayfasi(yazilar, v)] + [makale_sayfasi(y, v) for y in yazilar]
     for c in sayfalar:
         yaz(c["path"], sablon(c))
     # eski WordPress adresleri
-    for eski, yeni in {"/about/": "/#hakkimizda", "/contact/": "/#iletisim", "/services/": "/#hizmetler", "/blog/": "/"}.items():
-        yonlendir(eski, yeni)
+    for eski_url, yeni in {"/about/": "/#hakkimizda", "/contact/": "/#iletisim", "/services/": "/#hizmetler",
+                           "/kategori/uncategorized/": "/blog/", "/feed/": "/blog/", "/comments/feed/": "/blog/"}.items():
+        yonlendir(eski_url, yeni)
     with open(os.path.join(KOK, "sitemap.xml"), "w", encoding="utf-8", newline="\n") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
         for c in sayfalar:

@@ -33,7 +33,7 @@ PROFIL = {
     "site":     ("hero-mutfak", ["ev-temizligi", "insaat-sonrasi-temizlik", "dis-cephe-temizligi", "isyeri-temizligi", "villa-temizligi", "yat-tekne-temizligi"]),
     "villa":    ("hero-villa", ["villa-temizligi", "ev-temizligi", "dis-cephe-temizligi", "insaat-sonrasi-temizlik", "isyeri-temizligi", "yat-tekne-temizligi"]),
     "ofis":     ("hero-ofis", ["isyeri-temizligi", "ev-temizligi", "dis-cephe-temizligi", "insaat-sonrasi-temizlik", "villa-temizligi", "yat-tekne-temizligi"]),
-    "sahil":    ("hero-salon", ["ev-temizligi", "villa-temizligi", "yat-tekne-temizligi", "dis-cephe-temizligi", "insaat-sonrasi-temizlik", "isyeri-temizligi"]),
+    "sahil":    ("hero-pencere", ["ev-temizligi", "villa-temizligi", "yat-tekne-temizligi", "dis-cephe-temizligi", "insaat-sonrasi-temizlik", "isyeri-temizligi"]),
 }
 
 # slug, ad, bulunma eki, yaka, profil, mahalleler, not
