@@ -8,7 +8,7 @@ FIRMA = {
     "tel": "+905055905656",
     "wa": "905055905656",
     "eposta": "info@avrasyatemizlik.com.tr",
-    "gtm": "GTM-PC7TC3QZ",
+    "gtm": "GTM-5JQWDDJN",
 }
 
 # slug, başlık, kısa, görsel, açıklama
