@@ -41,6 +41,24 @@ def gorselleri_hazirla():
             im = im.resize((hedef_g, round(im.height * hedef_g / im.width)), Image.LANCZOS)
         im.save(hedef, "WEBP", quality=80, method=6)
         print("görsel:", ad + ".webp", im.size)
+    # küçük boyut kopyaları (srcset): hizmet/ekip görselleri
+    for f in os.listdir(IMG_DIR):
+        ad, uz = os.path.splitext(f)
+        if uz != ".webp" or re.search(r"-\d+$", ad) or not ad.startswith(("hizmet", "ekip")):
+            continue
+        ana = os.path.join(IMG_DIR, f)
+        im = None
+        for g in VARYANT:
+            hedef = os.path.join(IMG_DIR, f"{ad}-{g}.webp")
+            if os.path.exists(hedef) and os.path.getmtime(hedef) >= os.path.getmtime(ana):
+                continue
+            im = im or Image.open(ana).convert("RGB")
+            if im.width <= g:
+                continue
+            im.resize((g, round(im.height * g / im.width)), Image.LANCZOS).save(hedef, "WEBP", quality=74, method=6)
+            print("varyant:", f"{ad}-{g}.webp")
+
+VARYANT = (480, 800)
 
 def gorsel_var(ad):
     return os.path.exists(os.path.join(IMG_DIR, ad + ".webp"))
@@ -62,10 +80,17 @@ CICEK = ('<svg class="cicek" viewBox="0 0 100 100" aria-hidden="true"><g fill="c
          + "".join(f'<ellipse cx="50" cy="26" rx="13" ry="22" transform="rotate({a} 50 50)" opacity=".55"/>' for a in range(0, 360, 60))
          + '</g><circle cx="50" cy="50" r="10" fill="#fff"/></svg>')
 
-def resim(ad, alt, cls="", yukle="lazy", gen=None, yuk=None):
+def resim(ad, alt, cls="", yukle="lazy", gen=None, yuk=None, sizes="(max-width:640px) 100vw, 460px"):
     if gorsel_var(ad):
         boy = f' width="{gen}" height="{yuk}"' if gen else ""
-        return f'<img src="/assets/img/{ad}.webp" alt="{escape(alt)}" loading="{yukle}" decoding="async"{boy}{cls}>'
+        src = ""
+        vr = [g for g in VARYANT if os.path.exists(os.path.join(IMG_DIR, f"{ad}-{g}.webp"))]
+        if vr:
+            from PIL import Image
+            ana_g = Image.open(os.path.join(IMG_DIR, ad + ".webp")).width
+            src = (' srcset="' + ", ".join(f"/assets/img/{ad}-{g}.webp {g}w" for g in vr)
+                   + f', /assets/img/{ad}.webp {ana_g}w" sizes="{sizes}"')
+        return f'<img src="/assets/img/{ad}.webp"{src} alt="{escape(alt)}" loading="{yukle}" decoding="async"{boy}{cls}>'
     return f'<div class="yer-tutucu" role="img" aria-label="{escape(alt)}">{IKON["pirlanta"]}</div>'
 
 def wa_link(metin):
@@ -160,7 +185,13 @@ def sablon(c):
     html = f'''<!doctype html>
 <html lang="tr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<script>(function(w,d,s,l,i){{w[l]=w[l]||[];w[l].push({{'gtm.start':new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);}})(window,document,'script','dataLayer','{gtm}');</script>
+<script>
+/* GTM gecikmeli: reklam tıklamasıyla gelende (gclid vb.) hemen; diğerlerinde ilk dokunuş/kaydırma ya da yüklemeden 3,5 sn sonra */
+(function(w,d,id){{w.dataLayer=w.dataLayer||[];var y=0;function yukle(){{if(y)return;y=1;w.dataLayer.push({{'gtm.start':new Date().getTime(),event:'gtm.js'}});var j=d.createElement('script');j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+id;d.head.appendChild(j)}}w.__gtmYukle=yukle;
+if(/[?&](gclid|gbraid|wbraid|gad_source)=/.test(location.search)||/(^|; )_gcl_aw=/.test(d.cookie)){{yukle();return}}
+['pointerdown','keydown','touchstart','scroll'].forEach(function(e){{w.addEventListener(e,yukle,{{once:true,passive:true}})}});
+w.addEventListener('load',function(){{setTimeout(yukle,3500)}})}})(window,document,'{gtm}');
+</script>
 <script src="https://anticlick.com.tr/anticlick.js" data-key="cf_live_1cd50ec804b4446486df5ed8247fc66aa399" data-campaign="yaz-kampanyasi" data-protect-forms="true" data-protect-gtag="true" async></script>
 <title>{escape(c["title"])}</title>
 <meta name="description" content="{escape(c["desc"])}">
@@ -172,7 +203,7 @@ def sablon(c):
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Quicksand:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Quicksand:wght@500;600;700&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Quicksand:wght@500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/stil.css?v={c['v']}">
 {sema_html}
 </head><body>
@@ -197,7 +228,7 @@ def sablon(c):
 </div></section>
 
 <section class="bolum"><div class="kap ikili">
-<div class="resim">{resim("ekip", f"{FIRMA['ad']} temizlik ekibi")}</div>
+<div class="resim">{resim("ekip", f"{FIRMA['ad']} temizlik ekibi", sizes="(max-width:980px) 100vw, 580px")}</div>
 <div id="hakkimizda">{c["hakkinda"]}</div>
 </div></section>
 {uzun_html(c)}
@@ -264,7 +295,13 @@ def sablon(c):
 (function(){{var b=document.querySelector('.menu-ac'),m=document.getElementById('menu');
 b.addEventListener('click',function(){{var a=m.classList.toggle('acik');b.setAttribute('aria-expanded',a)}});
 m.querySelectorAll('a').forEach(function(x){{x.addEventListener('click',function(){{m.classList.remove('acik');b.setAttribute('aria-expanded',false)}})}});
-document.addEventListener('click',function(e){{var a=e.target.closest('[data-olay]');if(a){{(window.dataLayer=window.dataLayer||[]).push({{event:a.getAttribute('data-olay'),sayfa:location.pathname}})}}}});}})();
+document.addEventListener('click',function(e){{var a=e.target.closest('[data-olay]');if(a){{var o=a.getAttribute('data-olay');(window.dataLayer=window.dataLayer||[]).push({{event:o,sayfa:location.pathname}});
+if(!(window.google_tag_manager&&window.google_tag_manager['{gtm}'])){{yedek(o)}}window.__gtmYukle&&window.__gtmYukle()}}}},true);
+/* GTM henüz yüklenmemişken tıklama kaçmasın: dönüşüm doğrudan Ads 701'e (GTM'nin dataLayer'ından AYRI katman → çift sayım yok) */
+function yedek(o){{var et={{arama_tiklama:'VCZ2CPrCgbsdEIzli51F',whatsapp_tiklama:'iEzSCP3CgbsdEIzli51F'}}[o];if(!et)return;
+window.acDL=window.acDL||[];function g(){{acDL.push(arguments)}}
+if(!window.__awYedek){{window.__awYedek=1;var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id=AW-18583057036&l=acDL';document.head.appendChild(s);g('js',new Date());g('config','AW-18583057036')}}
+g('event','conversion',{{send_to:'AW-18583057036/'+et,transport_type:'beacon'}});window.__yedekDonusum=(window.__yedekDonusum||0)+1}}}})();
 </script>
 </body></html>
 '''
