@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://avrasyatemizlik.com.tr/sitemap.xml
