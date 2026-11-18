@@ -1,0 +1,13 @@
+; avrasyatemizlik.com.tr - Cloudflare DNS (2026-11-18)
+; Site: GitHub Pages (turabikudretli-design/avrasyatemizlik). E-posta: eski hosting 78.135.105.190
+$ORIGIN avrasyatemizlik.com.tr.
+@	1	IN	A	185.199.108.153
+@	1	IN	A	185.199.109.153
+@	1	IN	A	185.199.110.153
+@	1	IN	A	185.199.111.153
+www	1	IN	CNAME	turabikudretli-design.github.io.
+mail	1	IN	A	78.135.105.190
+webmail	1	IN	A	78.135.105.190
+@	1	IN	MX	10 mail.avrasyatemizlik.com.tr.
+@	1	IN	TXT	"v=spf1 ip4:78.135.105.190 mx -all"
+default._domainkey	1	IN	TXT	"v=DKIM1; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy+IXGl6+0fMheB2XbD+ogoKXVieDPihu/cbWh08FL+8dA6HaUybjV9Ofz7j+xQfas4fwyhyb0zm8FhZnlEhaiXqennPcKIW/WEKgF3E0mWJBk/laRGRZlrtDMejcb5Louvz4qQw8MRAr8DYU6YOh9S0XIhw1MeGJSHWuZxu/HdPfyyUe9C6r7Wh8CSbye/TEBBxlArZB" "/qRPfbL6U0boqcn6o52f7j6M1xd1toKTzg8WUfizbXarp/RYKMIwFXH024DQJcKZvQlM/3CGoFdW94GqneJQ1EPhXPGvvfMn+757OvccdeD8PftIb6yNjbjJ1JsR1W2CLUzH6Rik2h8+6wIDAQAB;"

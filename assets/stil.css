@@ -32,7 +32,9 @@ p{margin:0 0 1em}
 .ust{position:sticky;top:0;z-index:50;background:rgba(255,248,245,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(138,103,181,.12)}
 .ust .kap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--murdum)}
-.logo svg{width:42px;height:42px;flex:none}
+.logo img{height:46px;width:auto;display:block}
+footer .logo img{height:40px}
+@media (max-width:760px){.logo img{height:36px}}
 .logo b{font-family:var(--baslik);font-size:1.35rem;font-weight:600;display:block;line-height:1}
 .logo small{display:block;font-size:.74rem;color:var(--soluk);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
 .menu{display:flex;align-items:center;gap:26px}

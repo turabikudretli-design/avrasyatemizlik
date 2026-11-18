@@ -75,7 +75,7 @@ def wa_link(metin):
 # ---------- sayfa parçaları ----------
 def ust_bar():
     return f'''<header class="ust"><div class="kap">
-<a class="logo" href="/" aria-label="{FIRMA['ad']} ana sayfa">{LOGO}<span><b>Avrasya</b><small>Temizlik · İstanbul</small></span></a>
+<a class="logo" href="/" aria-label="{FIRMA['ad']} ana sayfa"><img src="/assets/img/logo.webp" alt="Avrasya Temizlik" width="739" height="144"></a>
 <button class="menu-ac" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">{IKON['menu']}</button>
 <nav class="menu" id="menu" aria-label="Ana menü">
 <a href="/#hizmetler">Hizmetler</a><a href="/#ilceler">İlçeler</a><a href="/blog/">Blog</a><a href="#sss">Sık Sorulanlar</a><a href="#iletisim">İletişim</a>
@@ -149,7 +149,7 @@ def sablon(c):
 <meta property="og:locale" content="tr_TR"><meta property="og:type" content="website"><meta property="og:site_name" content="{FIRMA['ad']}">
 <meta property="og:title" content="{escape(c["title"])}"><meta property="og:description" content="{escape(c["desc"])}"><meta property="og:url" content="{url}"><meta property="og:image" content="{og}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Quicksand:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="/assets/stil.css?v={c['v']}">
@@ -226,7 +226,7 @@ def sablon(c):
 </main>
 
 <footer><div class="kap">
-<div><a class="logo" href="/">{LOGO}<span><b>Avrasya</b><small>Temizlik · İstanbul</small></span></a>
+<div><a class="logo" href="/"><img src="/assets/img/logo-acik.webp" alt="Avrasya Temizlik" width="739" height="144" loading="lazy"></a>
 <p style="margin-top:16px">İstanbul'un Avrupa ve Anadolu yakasında ev, işyeri, villa ve inşaat sonrası temizlik hizmeti.</p></div>
 <div><h4>Hizmetler</h4><ul>{"".join(f'<li><a href="/{h[0]}/">{h[1]}</a></li>' for h in HIZMETLER)}</ul></div>
 <div><h4>İletişim</h4><ul><li><a href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{FIRMA['tel_goster']}</a></li><li><a href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">WhatsApp</a></li><li><a href="mailto:{FIRMA['eposta']}">{FIRMA['eposta']}</a></li></ul></div>
@@ -433,8 +433,6 @@ def main():
         f.write(f"User-agent: *\nAllow: /\nSitemap: {FIRMA['alan']}/sitemap.xml\n")
     with open(os.path.join(KOK, "CNAME"), "w", encoding="utf-8", newline="\n") as f:
         f.write("avrasyatemizlik.com.tr\n")
-    with open(os.path.join(KOK, "favicon.svg"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(LOGO.replace('aria-hidden="true"', 'xmlns="http://www.w3.org/2000/svg"') + "\n")
     with open(os.path.join(KOK, "404.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write('<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
                 '<title>Sayfa bulunamadı | Avrasya Temizlik</title><meta name="robots" content="noindex"><link rel="stylesheet" href="/assets/stil.css">'
