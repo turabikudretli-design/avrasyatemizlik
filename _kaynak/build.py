@@ -255,6 +255,10 @@ def sablon(c):
 <div><h4>İletişim</h4><ul><li><a href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{FIRMA['tel_goster']}</a></li><li><a href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">WhatsApp'tan teklif alın</a></li><li><a href="/yorumlar/">Müşteri yorumları</a></li></ul></div>
 <div class="alt">© {date.today().year} {FIRMA['ad']} · İstanbul</div>
 </div></footer>
+<!-- BOT-TUZAK:START (gercek musteri goremez; tiklayan AntiClick ile kalici engellenir, donusum sayilmaz) -->
+<script>window.__cfTrap=function(e){{e.preventDefault();try{{localStorage.setItem('cf_trap','1')}}catch(x){{}}return false}}</script>
+<div class="cf-tz" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden"><a href="tel:+900000000" data-cf-trap="1" tabindex="-1" rel="nofollow" onclick="return __cfTrap(event)">Hemen Ara</a><a href="https://wa.me/900000000" data-cf-trap="1" tabindex="-1" rel="nofollow" onclick="return __cfTrap(event)">WhatsApp'tan Teklif Al</a></div>
+<!-- BOT-TUZAK:END -->
 <div class="yapiskan"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Ara</a><a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp</a></div>
 <script>
 (function(){{var b=document.querySelector('.menu-ac'),m=document.getElementById('menu');
