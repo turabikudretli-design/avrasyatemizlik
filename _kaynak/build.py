@@ -78,7 +78,7 @@ def ust_bar():
 <a class="logo" href="/" aria-label="{FIRMA['ad']} ana sayfa"><img src="/assets/img/logo.webp" alt="Avrasya Temizlik" width="739" height="144"></a>
 <button class="menu-ac" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">{IKON['menu']}</button>
 <nav class="menu" id="menu" aria-label="Ana menü">
-<a href="/#hizmetler">Hizmetler</a><a href="/#ilceler">İlçeler</a><a href="/blog/">Blog</a><a href="#sss">Sık Sorulanlar</a><a href="#iletisim">İletişim</a>
+<a href="/#hizmetler">Hizmetler</a><a href="/#ilceler">İlçeler</a><a href="/yorumlar/">Yorumlar</a><a href="/blog/">Blog</a><a href="#sss">Sık Sorulanlar</a><a href="#iletisim">İletişim</a>
 <a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}{FIRMA['tel_goster']}</a>
 </nav></div></header>'''
 
@@ -97,6 +97,26 @@ def ilce_listesi(aktif=None):
         gr[d[3]].append(f'<li><a href="/{d[0]}-temizlik-sirketi/"{cur}>{d[1]}</a></li>')
     return (f'<h3>Avrupa Yakası</h3><ul class="ilce-liste">{"".join(gr["Avrupa"])}</ul>'
             f'<h3>Anadolu Yakası</h3><ul class="ilce-liste">{"".join(gr["Anadolu"])}</ul>')
+
+YORUMLAR = [
+    ("A. Kalkan", 5, "Evimizin temizliği çok güzel yapıldı. Ekip oldukça titiz ve güler yüzlüydü. Memnun kaldık, teşekkür ederiz."),
+    ("M. Yıldırım", 5, "Avrasya Temizlik ekibine teşekkür ederiz. Zamanında geldiler ve her yeri özenle temizlediler."),
+    ("S. Demir", 5, "Ofis temizliği için hizmet aldık. Çalışanlar düzenli ve profesyoneldi. Kesinlikle tavsiye ederim."),
+    ("E. Arslan", 5, "Taşınma öncesi temizlik yaptırdık. Evimiz tertemiz oldu. Emeği geçen herkese teşekkürler."),
+    ("N. Şahin", 5, "Mutfak ve banyo temizliğinden çok memnun kaldık. İşlerini gerçekten özenerek yapıyorlar."),
+    ("B. Çelik", 4, "Genel olarak güzel bir hizmet aldık. Ekip ilgili ve çalışkandı. Birkaç küçük detay dışında memnun kaldık."),
+]
+
+def yorum_kartlari():
+    return "\n".join(f'''<figure class="yorum"><div class="yildiz" aria-label="5 üzerinden {p} yıldız">{"★" * p}<span>{"★" * (5 - p)}</span></div>
+<blockquote>{escape(m)}</blockquote><figcaption>{escape(a)}</figcaption></figure>''' for a, p, m in YORUMLAR)
+
+def yorum_bolumu(baslik="Müşterilerimiz <em>ne diyor?</em>", tum_link=True):
+    link = '<p class="yorum-alt"><a href="/yorumlar/">Tüm yorumlar →</a></p>' if tum_link else ""
+    return f'''<section class="bolum" id="yorumlar"><div class="kap">
+<div class="bolum-bas"><span class="etiket">Müşteri yorumları</span><h2>{baslik}</h2></div>
+<div class="izgara yorumlar">{yorum_kartlari()}</div>{link}
+</div></section>'''
 
 def sss_html(sorular):
     return "\n".join(f'<details><summary>{escape(s)}</summary><p>{escape(c)}</p></details>' for s, c in sorular)
@@ -117,7 +137,7 @@ def sablon(c):
             (f'<a href="{u}">{escape(a)}</a>' if u else escape(a)) for a, u in c["yol"]) + "</nav>"
     sema = [{
         "@context": "https://schema.org", "@type": "LocalBusiness", "@id": FIRMA["alan"] + "/#isletme",
-        "name": FIRMA["ad"], "url": FIRMA["alan"] + "/", "telephone": FIRMA["tel"], "email": FIRMA["eposta"],
+        "name": FIRMA["ad"], "url": FIRMA["alan"] + "/", "telephone": FIRMA["tel"],
         "image": og, "address": {"@type": "PostalAddress", "addressLocality": "İstanbul", "addressCountry": "TR"},
         "areaServed": c.get("area", {"@type": "City", "name": "İstanbul"}),
     }]
@@ -164,7 +184,7 @@ def sablon(c):
 <h1>{c["h1"]}</h1>
 <p class="giris">{c["giris"]}</p>
 <div class="dugmeler"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Hemen Ara</a>
-<a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Yaz</a></div>
+<a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Teklif Al</a></div>
 <ul class="rozetler">{rozet}</ul></div>
 <div class="hero-gorsel">{CICEK}<div class="cerceve">{hero_img}</div>
 <div class="kart"><i>{IKON['kalp']}</i><div><b>{escape(c["kart_b"])}</b><span>{escape(c["kart_s"])}</span></div></div></div>
@@ -200,6 +220,8 @@ def sablon(c):
 <div class="is-kutu"><h3><span>{IKON['kalp']}</span>İnşaat ve tadilat sonrası</h3><ul class="liste"><li>Boya, alçı ve silikon kalıntıları</li><li>İnce toz temizliği</li><li>Cam, doğrama ve zemin temizliği</li></ul></div>
 </div></div></section>
 
+{yorum_bolumu()}
+
 <section class="bolum pembe" id="sss"><div class="kap">
 <div class="bolum-bas"><span class="etiket">Sık sorulanlar</span><h2>Merak <em>ettikleriniz</em></h2></div>
 <div class="sss">{sss_html(c["sss"])}</div>
@@ -212,9 +234,9 @@ def sablon(c):
 </div></section>
 
 <section class="kap"><div class="cta">
-<div><h2>{c["cta_h"]}</h2><p>Ücretsiz bilgi almak ve randevu oluşturmak için hemen arayın ya da WhatsApp'tan yazın.</p></div>
+<div><h2>{c["cta_h"]}</h2><p>Ücretsiz teklif için WhatsApp'tan yazın ya da hemen arayın; fiyatı iş başlamadan önce netleştirelim.</p></div>
 <div class="dugmeler"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}{FIRMA['tel_goster']}</a>
-<a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Yaz</a></div>
+<a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Teklif Al</a></div>
 </div></section>
 
 <section class="bolum" id="iletisim"><div class="kap">
@@ -222,7 +244,7 @@ def sablon(c):
 <div class="iletisim">
 <a href="tel:{FIRMA['tel']}" data-olay="arama_tiklama"><span>Telefon</span><b>{FIRMA['tel_goster']}</b></a>
 <a href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama"><span>WhatsApp</span><b>Mesaj gönderin</b></a>
-<a href="mailto:{FIRMA['eposta']}"><span>E-posta</span><b>{FIRMA['eposta']}</b></a>
+<a href="{wa_link('Merhaba, temizlik için fiyat teklifi almak istiyorum.')}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama"><span>Ücretsiz teklif</span><b>WhatsApp'tan teklif alın</b></a>
 </div></div></section>
 </main>
 
@@ -230,7 +252,7 @@ def sablon(c):
 <div><a class="logo" href="/"><img src="/assets/img/logo-acik.webp" alt="Avrasya Temizlik" width="739" height="144" loading="lazy"></a>
 <p style="margin-top:16px">İstanbul'un Avrupa ve Anadolu yakasında ev, işyeri, villa ve inşaat sonrası temizlik hizmeti.</p></div>
 <div><h4>Hizmetler</h4><ul>{"".join(f'<li><a href="/{h[0]}/">{h[1]}</a></li>' for h in HIZMETLER)}</ul></div>
-<div><h4>İletişim</h4><ul><li><a href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{FIRMA['tel_goster']}</a></li><li><a href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">WhatsApp</a></li><li><a href="mailto:{FIRMA['eposta']}">{FIRMA['eposta']}</a></li></ul></div>
+<div><h4>İletişim</h4><ul><li><a href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{FIRMA['tel_goster']}</a></li><li><a href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">WhatsApp'tan teklif alın</a></li><li><a href="/yorumlar/">Müşteri yorumları</a></li></ul></div>
 <div class="alt">© {date.today().year} {FIRMA['ad']} · İstanbul</div>
 </div></footer>
 <div class="yapiskan"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Ara</a><a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp</a></div>
@@ -366,7 +388,7 @@ def makale_sayfasi(y, v):
 <span class="etiket">Blog · Temizlik rehberi</span><h1>{escape(y["baslik"])}</h1>
 <p class="giris">{escape(y["ozet"])}</p>
 <div class="dugmeler"><a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Hemen Ara</a>
-<a class="btn btn-wa" href="{wa_link('Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.')}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Yaz</a></div>
+<a class="btn btn-wa" href="{wa_link('Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.')}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Teklif Al</a></div>
 </div></section>
 <section class="bolum" style="padding-top:20px"><div class="kap makale-izgara">
 <article class="makale">{y["govde"]}</article>
@@ -375,7 +397,8 @@ def makale_sayfasi(y, v):
 <div class="yan-kart ic"><h3>Hizmetlerimiz</h3><ul class="liste">{"".join(f'<li><a href="/{h[0]}/">{h[1]}</a></li>' for h in HIZMETLER)}</ul></div></aside>
 </div></section>
 <section class="bolum pembe" id="hizmetler"><div class="kap"><div class="bolum-bas"><span class="etiket">Hizmetlerimiz</span><h2>İstanbul'da <em>tertemiz</em> yaşam alanları</h2></div>
-<div class="izgara hizmetler">{hizmet_kartlari([h[0] for h in HIZMETLER][:3], "İstanbul")}</div></div></section>'''
+<div class="izgara hizmetler">{hizmet_kartlari([h[0] for h in HIZMETLER][:3], "İstanbul")}</div></div></section>
+{yorum_bolumu()}'''
     return dict(path=f"/{y['slug']}/", v=v, title=f"{y['baslik']} | Avrasya Temizlik", desc=y["desc"], sss=[],
                 hero="hero-salon", hero_alt="", ust_etiket="", h1="", giris="", yer="İstanbul", yerde="İstanbul'da",
                 sira=[h[0] for h in HIZMETLER], rozetler=[], kart_b="", kart_s="", hakkinda="", yol=[("Blog", "/blog/"), (y["baslik"], None)],
@@ -395,6 +418,25 @@ def blog_sayfasi(yazilar, v):
                 sira=[h[0] for h in HIZMETLER], rozetler=[], kart_b="", kart_s="", hakkinda="", yol=[("Blog", None)],
                 ilce_aktif=None, wa_metin="Merhaba, temizlik hizmeti hakkında bilgi almak istiyorum.",
                 cta_h="Temizlik için <em>bugün</em> arayın", ozel_main=main)
+
+def yorumlar_sayfasi(v):
+    wa = wa_link("Merhaba, temizlik için fiyat teklifi almak istiyorum.")
+    main = f'''<section class="hero makale-bas"><div class="kap" style="display:block">
+<nav class="yol" aria-label="Sayfa yolu"><a href="/">Ana sayfa</a> › Yorumlar</nav>
+<span class="etiket">Müşteri yorumları</span><h1>Müşterilerimiz <em>ne diyor?</em></h1>
+<p class="giris">Avrasya Temizlik'ten ev, ofis ve taşınma temizliği hizmeti alan müşterilerimizin yorumları.</p>
+<div class="dugmeler"><a class="btn btn-wa" href="{wa}" target="_blank" rel="noopener" data-olay="whatsapp_tiklama">{IKON['wa']}WhatsApp'tan Teklif Al</a>
+<a class="btn btn-ana" href="tel:{FIRMA['tel']}" data-olay="arama_tiklama">{IKON['tel']}Hemen Ara</a></div>
+</div></section>
+<section class="bolum" style="padding-top:10px"><div class="kap"><div class="izgara yorumlar">{yorum_kartlari()}</div></div></section>
+<section class="bolum pembe" id="hizmetler"><div class="kap"><div class="bolum-bas"><span class="etiket">Hizmetlerimiz</span><h2>İstanbul'da <em>tertemiz</em> yaşam alanları</h2></div>
+<div class="izgara hizmetler">{hizmet_kartlari([h[0] for h in HIZMETLER], "İstanbul")}</div></div></section>'''
+    return dict(path="/yorumlar/", v=v, title="Müşteri Yorumları | Avrasya Temizlik",
+                desc="Avrasya Temizlik müşteri yorumları: ev, ofis ve taşınma temizliği hizmeti alan müşterilerimizin görüşleri. WhatsApp'tan ücretsiz teklif alın.", sss=[],
+                hero="hero-salon", hero_alt="", ust_etiket="", h1="", giris="", yer="İstanbul", yerde="İstanbul'da",
+                sira=[h[0] for h in HIZMETLER], rozetler=[], kart_b="", kart_s="", hakkinda="", yol=[("Yorumlar", None)],
+                ilce_aktif=None, wa_metin="Merhaba, temizlik için fiyat teklifi almak istiyorum.",
+                cta_h="Sizin de evinizi <em>tertemiz</em> yapalım", ozel_main=main)
 
 def yaz(path, html):
     hedef = os.path.join(KOK, path.strip("/"), "index.html") if path != "/" else os.path.join(KOK, "index.html")
@@ -416,6 +458,7 @@ def main():
     v = str(int(os.path.getmtime(os.path.join(KAYNAK, "stil.css"))))[-6:]
     sayfalar = ([ana_sayfa(v)] + [hizmet_sayfasi(h, v) for h in HIZMETLER] + [yaka_sayfasi(y, v) for y in ("Avrupa", "Anadolu")]
                 + [ilce_sayfasi(d, v) for d in ILCELER])
+    sayfalar.append(yorumlar_sayfasi(v))
     dolu = {c["path"] for c in sayfalar} | {"/blog/", "/about/", "/contact/", "/services/"}
     yazilar = [y for y in YAZILAR if f"/{y['slug']}/" not in dolu]
     sayfalar += [blog_sayfasi(yazilar, v)] + [makale_sayfasi(y, v) for y in yazilar]

@@ -189,3 +189,12 @@ footer .logo{color:#fff} footer .logo small{color:#BFAFCB}
   .yapiskan .btn{padding:.85em 1em}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.yorumlar{grid-template-columns:repeat(3,1fr)}
+.yorum{margin:0;background:#fff;border-radius:var(--r);padding:28px;box-shadow:var(--golge2);display:flex;flex-direction:column}
+.yildiz{color:var(--seftali);font-size:1.2rem;letter-spacing:2px;margin-bottom:10px} .yildiz span{color:var(--lila-b)}
+.yorum blockquote{margin:0 0 16px;color:var(--metin);flex:1}
+.yorum figcaption{font-family:var(--baslik);font-weight:600;color:var(--murdum)}
+.yorum-alt{text-align:center;margin:28px 0 0;font-weight:700}
+@media (max-width:980px){.yorumlar{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.yorumlar{grid-template-columns:1fr}}
